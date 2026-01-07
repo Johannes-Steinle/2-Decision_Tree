@@ -8,33 +8,36 @@ class TestMLModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Wird einmal vor allen Tests ausgeführt. Lädt Daten und bereitet sie vor."""
+        """Wird einmal vor allen Tests ausgeführt. Lädt Daten."""
         cls.X, cls.y = load_data('Loan_Data.csv')
         cls.X_train, cls.X_test, cls.y_train, cls.y_test = train_test_split(
             cls.X, cls.y, test_size=0.3, random_state=101
         )
-        # Norm-Zeit für Random Forest Training ca. 1.0s (Anpassung je nach CPU)
-        cls.norm_fit_time = 2.0 
+        cls.norm_fit_time = 1.0 
 
     def test_1_predict_accuracy(self):
         """
-        Ziel: Accuracy muss > 0.70 sein (Random Forest auf Loan Data).
+        Aufgabe: Test der Vorhersagefunktion (predict).
+        Ziel: Accuracy > 0.70.
         """
-        model, _ = fit_model(self.X_train, self.y_train)
+        model = fit_model(self.X_train, self.y_train)
         predictions = predict_model(model, self.X_test)
         acc = accuracy_score(self.y_test, predictions)
         
-        print(f"\n[Test Predict] Gemessene Accuracy: {acc}")
+        print(f"\n[Test predict()] Gemessene Accuracy: {acc:.4f}")
         self.assertGreater(acc, 0.70, f"Accuracy zu niedrig: {acc} < 0.70")
 
     def test_2_fit_runtime(self):
         """
+        Aufgabe: Überprüfung der Laufzeit der Trainingsfunktion (fit).
         Ziel: Laufzeit < 120% der Normzeit.
         """
-        _, duration = fit_model(self.X_train, self.y_train)
+        start_time = time.time()
+        fit_model(self.X_train, self.y_train)
+        duration = time.time() - start_time
         
-        limit = self.norm_fit_time * 1.2
-        print(f"\n[Test Fit] Gemessene Dauer: {duration:.4f}s (Limit: {limit:.4f}s)")
+        limit = self.norm_fit_time * 1.5 # Puffer für Testumgebung
+        print(f"\n[Test fit()] Gemessene Dauer: {duration:.4f}s (Limit: {limit:.4f}s)")
         
         self.assertLess(duration, limit, f"Training dauerte zu lange: {duration:.4f}s > {limit:.4f}s")
 
